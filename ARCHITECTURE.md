@@ -32,7 +32,7 @@
 - **Java 17+**
 - **Spring Boot 3.x**
 - **Spring Data JPA** — работа с БД
-- **H2 Database** — in-memory БД для токенов и пользователей
+- **H2 Database** — in-memory БД только для хранения токенов доступа к банковским API
 - **Spring Security** — безопасность (для будущего OAuth)
 - **Spring AOP** — аспекты для обертки ответов
 - **MapStruct** — маппинг Entity ↔ DTO
@@ -73,15 +73,9 @@ com.finplus/
 │
 ├── domain/                      # Доменная модель
 │   ├── model/                   # JPA Entities
-│   │   ├── User.java
-│   │   ├── BankToken.java
-│   │   ├── Transaction.java
-│   │   └── Balance.java
+│   │   └── BankToken.java       # Хранит только токены доступа к банковским API
 │   ├── repository/              # JPA Repositories
-│   │   ├── UserRepository.java
-│   │   ├── BankTokenRepository.java
-│   │   ├── TransactionRepository.java
-│   │   └── BalanceRepository.java
+│   │   └── BankTokenRepository.java
 │   └── dto/                     # Data Transfer Objects
 │       ├── request/
 │       │   ├── ConnectBankRequest.java
@@ -189,7 +183,7 @@ com.finplus/
                    │
 ┌──────────────────▼──────────────────────────────┐
 │          Repository Layer (JPA)                 │  ← Data Access
-│  (BankTokenRepository, UserRepository, etc.)    │
+│  (BankTokenRepository)                          │
 └──────────────────┬──────────────────────────────┘
                    │
 ┌──────────────────▼──────────────────────────────┐
@@ -211,9 +205,10 @@ public interface BankAdapter {
 ```
 
 #### 2. **Token Management**
-- Хранение токенов в H2
-- Автоматическое обновление через refresh_token
-- Проверка срока действия
+- Хранение токенов в H2 (in-memory)
+- Формат токена: `{access_token, token_type, client_id, expires_in}`
+- Проверка срока действия токена
+- Все данные (балансы, транзакции) получаются в реальном времени через API запросы к банкам
 
 #### 3. **Financial Health Calculation**
 - Расчет метрики "сердцебиения финансов"
@@ -591,62 +586,30 @@ JPA Repositories для абстракции доступа к данным
 
 ### H2 In-Memory Database
 
-**Таблица: users**
-```sql
-CREATE TABLE users (
-    id VARCHAR(100) PRIMARY KEY,
-    subscription_type VARCHAR(20) NOT NULL DEFAULT 'FREE',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
+**Назначение**: Хранит только токены доступа к банковским API.  
+**Все остальные данные** (балансы, транзакции) получаются напрямую через API запросы к банкам.
 
 **Таблица: bank_tokens**
 ```sql
 CREATE TABLE bank_tokens (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     user_id VARCHAR(100) NOT NULL,
-    bank_name VARCHAR(50) NOT NULL,
     access_token VARCHAR(500) NOT NULL,
-    refresh_token VARCHAR(500) NOT NULL,
-    expires_at TIMESTAMP NOT NULL,
+    token_type VARCHAR(20) NOT NULL DEFAULT 'bearer',
+    client_id VARCHAR(100) NOT NULL,
+    expires_in INTEGER NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    UNIQUE KEY unique_user_bank (user_id, bank_name)
+    UNIQUE KEY unique_user (user_id)
 );
 ```
 
-**Таблица: balances** (опционально, для истории)
-```sql
-CREATE TABLE balances (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id VARCHAR(100) NOT NULL,
-    bank_name VARCHAR(50) NOT NULL,
-    account_id VARCHAR(100) NOT NULL,
-    amount DECIMAL(15, 2) NOT NULL,
-    currency VARCHAR(3) NOT NULL,
-    snapshot_date DATE NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-**Таблица: transactions** (опционально, для истории)
-```sql
-CREATE TABLE transactions (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id VARCHAR(100) NOT NULL,
-    bank_name VARCHAR(50) NOT NULL,
-    transaction_id VARCHAR(100) NOT NULL,
-    account_id VARCHAR(100) NOT NULL,
-    amount DECIMAL(15, 2) NOT NULL,
-    currency VARCHAR(3) NOT NULL,
-    category VARCHAR(50),
-    description TEXT,
-    transaction_date TIMESTAMP NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY unique_transaction (bank_name, transaction_id)
-);
-```
+**Примечания:**
+- `user_id` - идентификатор пользователя из внешней системы
+- `access_token` - токен доступа, полученный из банковского API
+- `token_type` - тип токена (обычно "bearer")
+- `client_id` - ID клиента (например, "team200")
+- `expires_in` - время жизни токена в секундах
+- Балансы и транзакции **не хранятся** в БД, получаются в реальном времени через API
 
 ---
 
