@@ -1,0 +1,48 @@
+ # Node
+ node_modules/
+ npm-debug.log*
+ yarn-debug.log*
+ yarn-error.log*
+ pnpm-debug.log*
+
+ # Build output
+ /dist/
+ /build/
+ /.cache/
+ /tmp/
+
+ # Testing
+ /coverage/
+ /.nyc_output/
+
+ # Env & secrets
+ .env
+ .env.*
+ !.env.example
+
+ # Misc
+ .DS_Store
+ Thumbs.db
+ *.swp
+ *.swo
+
+ # IDE
+ .vscode/
+ .idea/
+ *.iml
+
+ # TypeScript
+ *.tsbuildinfo
+
+ # Webpack
+ /.webpack-cache/
+
+ # PWA/Service Worker artifacts
+ /workbox-
+ /sw.js
+ /sw.js.map
+
+ # Local files
+ /.eslintcache
+ /.stylelintcache
+
