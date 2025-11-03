@@ -1,6 +1,6 @@
-# 🚀 Руководство по разработке FinPlus
+# 🚀 Руководство по разработке FinPuls
 
-Документация по настройке, запуску и работе с проектом FinPlus.
+Документация по настройке, запуску и работе с проектом FinPuls.
 
 ---
 
@@ -28,7 +28,7 @@
 ```bash
 # 1. Клонировать репозиторий (если еще не склонирован)
 git clone <repository-url>
-cd FinPlus
+cd FinPuls
 
 # 2. Создать файл .env (если его нет)
 cp env.example .env
@@ -41,7 +41,7 @@ docker compose up --build -d
 docker compose ps
 
 # 5. Посмотреть логи
-docker logs -f finplus-backend
+docker logs -f finpuls-backend
 ```
 
 ### Проверка работоспособности
@@ -77,10 +77,10 @@ docker compose down -v
 docker compose logs -f backend
 
 # Просмотр логов конкретного контейнера
-docker logs -f finplus-backend
+docker logs -f finpuls-backend
 
 # Зайти внутрь контейнера
-docker exec -it finplus-backend bash
+docker exec -it finpuls-backend bash
 ```
 
 ### Структура Docker
@@ -462,8 +462,8 @@ SPRING_PROFILES_ACTIVE=dev
 LOG_LEVEL=INFO
 
 # Database (для PostgreSQL)
-DB_URL=jdbc:postgresql://localhost:5432/finplus
-DB_USERNAME=finplus
+DB_URL=jdbc:postgresql://localhost:5432/finpuls
+DB_USERNAME=finpuls
 DB_PASSWORD=your_password_here
 
 # Bank API Tokens (обязательно!)
@@ -509,7 +509,7 @@ docker compose down
 docker compose restart backend
 
 # Логи в реальном времени
-docker logs -f finplus-backend
+docker logs -f finpuls-backend
 
 # Последние 100 строк логов
 docker logs --tail 100 finplus-backend
@@ -566,19 +566,19 @@ curl http://localhost:8080/api-docs
 
 ```bash
 # Просмотр логов из файла
-tail -f logs/finplus.log
+tail -f logs/finpuls.log
 
 # Поиск ошибок
-grep "ERROR" logs/finplus.log
+grep "ERROR" logs/finpuls.log
 
 # Поиск по Request ID
-grep "requestId=abc123" logs/finplus.log
+grep "requestId=abc123" logs/finpuls.log
 
 # Подсчет запросов
-grep "Входящий запрос" logs/finplus.log | wc -l
+grep "Входящий запрос" logs/finpuls.log | wc -l
 
 # Запросы с ошибками
-grep "Статус: [45]" logs/finplus.log
+grep "Статус: [45]" logs/finpuls.log
 ```
 
 ---
@@ -632,13 +632,13 @@ curl -H "X-Request-Id: my-custom-id" http://localhost:8080/actuator/health
 
 Используйте Request ID:
 ```bash
-docker logs finplus-backend | grep "requestId=abc123"
+docker logs finpuls-backend | grep "requestId=abc123"
 ```
 
 ### Где хранятся логи?
 
-1. **В контейнере:** `/app/logs/finplus.log`
-2. **На хосте:** `./logs/finplus.log` (через volume)
+1. **В контейнере:** `/app/logs/finpuls.log`
+2. **На хосте:** `./logs/finpuls.log` (через volume)
 
 ### Как изменить уровень логирования?
 
