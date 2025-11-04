@@ -9,7 +9,6 @@ import jakarta.persistence.Table;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.UuidGenerator;
-import org.hibernate.annotations.columnDefinition;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -31,18 +30,18 @@ public class User{
     @Column(name = "client_id", length = 128, nullable = false, unique = true)
     private String clientId;
 
-    @Column (name = "subscription_id", nullable = false)
+    @Column (name = "subscription_id", nullable = true)
     private UUID subscriptionId;
 
-    @Enumerated(EnumType.String)
+    @Enumerated(EnumType.STRING)
     @Column (name = "status", nullable = false)
     private UserStatus status = UserStatus.ACTIVE;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, columnDefinition = "TIMESTAMPTZ")
-    private OffsetDateTime createAt;
+    private OffsetDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(name = "update_at", nullable = false, columnDefinition = "TIMESTAMPTZ")
-    private OffsetDateTime updateAt;
+    @Column(name = "updated_at", nullable = false, columnDefinition = "TIMESTAMPTZ")
+    private OffsetDateTime updatedAt;
 }
