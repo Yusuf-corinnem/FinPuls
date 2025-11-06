@@ -77,7 +77,7 @@
 **Приоритет**: Высокий
 
 #### 2.3 Кастомные исключения
-- [ ] Создать базовый класс FinPlusException
+- [ ] Создать базовый класс FinPulsException
 - [ ] Создать BankApiException
 - [ ] Создать TokenExpiredException
 - [ ] Создать SubscriptionRequiredException
@@ -89,7 +89,7 @@
 
 #### 2.4 Глобальная обработка ошибок
 - [ ] Создать GlobalExceptionHandler
-- [ ] Настроить обработку FinPlusException
+- [ ] Настроить обработку FinPulsException
 - [ ] Настроить обработку ValidationException
 - [ ] Настроить обработку общих Exception
 - [ ] Протестировать обработку ошибок

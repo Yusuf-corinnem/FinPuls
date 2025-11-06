@@ -63,7 +63,7 @@
 ### Структура пакетов
 
 ```
-com.finplus/
+com.finpuls/
 ├── config/                      # Конфигурация
 │   ├── JpaConfig.java
 │   ├── SwaggerConfig.java
@@ -132,7 +132,7 @@ com.finplus/
 │       └── ErrorDetails.java    # Детали ошибок
 │
 ├── api/exception/               # Обработка ошибок
-│   ├── FinPlusException.java    # Базовое исключение
+│   ├── FinPulsException.java    # Базовое исключение
 │   ├── BankException.java
 │   │   ├── BankApiException.java
 │   │   ├── BankConnectionException.java
@@ -344,7 +344,7 @@ FinPuls/
 ├── backend/
 │   ├── src/
 │   │   ├── main/
-│   │   │   ├── java/com/finplus/
+│   │   │   ├── java/com/finpuls/
 │   │   │   │   └── [структура пакетов выше]
 │   │   │   └── resources/
 │   │   │       ├── application.properties
@@ -431,7 +431,7 @@ interface IApiResponse<T> {
       "userAgent": "Mozilla/5.0..."
     },
     "source": {
-      "file": "com.finplus.service.BankService",
+      "file": "com.finpuls.service.BankService",
       "function": "getBalances",
       "line": 45
     },
@@ -622,7 +622,7 @@ CREATE TABLE bank_tokens (
 server.port=8080
 
 # Database (H2)
-spring.datasource.url=jdbc:h2:mem:finplusdb
+spring.datasource.url=jdbc:h2:mem:finpulsdb
 spring.datasource.driverClassName=org.h2.Driver
 spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
 spring.jpa.hibernate.ddl-auto=update
@@ -631,9 +631,9 @@ spring.h2.console.path=/h2-console
 
 # Logging
 logging.level.root=${LOG_LEVEL:INFO}
-logging.level.com.finplus=DEBUG
-logging.level.com.finplus.service.bank=INFO
-logging.file.name=logs/finplus.log
+logging.level.com.finpuls=DEBUG
+logging.level.com.finpuls.service.bank=INFO
+logging.file.name=logs/finpuls.log
 
 # Banks Configuration
 bank.vtb.base-url=https://api-vtb.ru
@@ -689,7 +689,7 @@ services:
       timeout: 10s
       retries: 3
     networks:
-      - finplus-network
+      - finpuls-network
 
   frontend:
     build: ./frontend
@@ -700,7 +700,7 @@ services:
     depends_on:
       - backend
     networks:
-      - finplus-network
+      - finpuls-network
 
   prometheus:
     image: prom/prometheus:latest
@@ -709,10 +709,10 @@ services:
     ports:
       - "9090:9090"
     networks:
-      - finplus-network
+      - finpuls-network
 
 networks:
-  finplus-network:
+  finpuls-network:
     driver: bridge
 ```
 
@@ -798,7 +798,7 @@ CMD ["nginx", "-g", "daemon off;"]
       "userAgent": "Mozilla/5.0..."
     },
     "source": {
-      "file": "com.finplus.service.BankService",
+      "file": "com.finpuls.service.BankService",
       "function": "getBalances",
       "line": 45
     },
@@ -827,9 +827,9 @@ CMD ["nginx", "-g", "daemon off;"]
 - Source информация (`data.source`) заполняется автоматически Logback
 
 #### Файлы логов
-- `logs/finplus.log` — основные логи приложения
+- `logs/finpuls.log` — основные логи приложения
 - `logs/bank-api.log` — логи банковских API
-- Ротация: `logs/finplus.2025-01-20.log`, `logs/bank-api.2025-01-20.log`
+- Ротация: `logs/finpuls.2025-01-20.log`, `logs/bank-api.2025-01-20.log`
 - Хранение: 14 дней, после чего автоматическое удаление
 
 ### Swagger документация
