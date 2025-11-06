@@ -16,7 +16,11 @@
         "resolveJsonModule": true,
         "sourceMap": true,
         "noEmit": false,
-        "outDir": "./dist"
+        "outDir": "./dist",
+        "baseUrl": ".",
+        "paths": {
+            "@/*": ["src/*"]
+        }
     },
     "include": [
         "src"

@@ -2,6 +2,8 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const WorkboxPlugin = require('workbox-webpack-plugin');
+const webpack = require('webpack');
+require('dotenv').config();
 
 /** @type {import('webpack').Configuration} */
 module.exports = (env, argv) => {
@@ -17,6 +19,9 @@ module.exports = (env, argv) => {
     },
     resolve: {
       extensions: ['.ts', '.tsx', '.js', '.jsx'],
+      alias: {
+        '@': path.resolve(__dirname, 'src'),
+      },
     },
     module: {
       rules: [
@@ -44,6 +49,10 @@ module.exports = (env, argv) => {
       new WorkboxPlugin.GenerateSW({
         clientsClaim: true,
         skipWaiting: true,
+      }),
+      new webpack.DefinePlugin({
+        'process.env.API_URL': JSON.stringify(process.env.API_URL || ''),
+        'process.env.APP_NAME': JSON.stringify(process.env.APP_NAME || 'FinPuls'),
       }),
     ],
     devtool: isDev ? 'source-map' : false,
