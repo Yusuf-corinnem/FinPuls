@@ -12,8 +12,8 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.finplus</groupId>
-    <artifactId>finplus</artifactId>
+    <groupId>com.finpuls</groupId>
+    <artifactId>finpuls</artifactId>
     <version>1.0.0</version>
     <name>FinPuls</name>
     <description>FinPuls - Мультибанковское приложение для управления личными финансами</description>

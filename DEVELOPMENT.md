@@ -267,7 +267,7 @@ ApiResponse.success(user, requestId)
 **Назначение:** Централизованная обработка всех исключений
 
 **Что обрабатывает:**
-- `FinPlusException` и все наследники
+- `FinPulsException` и все наследники
 - `ValidationException` - ошибки валидации
 - `MethodArgumentNotValidException` - ошибки @Valid
 - `ConstraintViolationException` - ошибки валидации
@@ -304,7 +304,7 @@ ApiResponse.success(user, requestId)
 logging.level.root=INFO
 
 # Логи приложения - DEBUG для разработки
-logging.level.com.finplus=DEBUG
+logging.level.com.finpuls=DEBUG
 
 # SQL запросы - DEBUG для отладки
 logging.level.org.hibernate.SQL=DEBUG
@@ -332,17 +332,17 @@ logging.level.org.apache.tomcat=WARN
 
 ```
 2025-11-02 16:31:55.680 ERROR [requestId=abc123] Ошибка обработки запроса: POST /api/banks - Время выполнения: 50ms - IP: 172.18.0.1
-com.finplus.api.exception.ValidationException: Ошибка валидации
+com.finpuls.api.exception.ValidationException: Ошибка валидации
 ```
 
 ### Логи в файл
 
-**Путь:** `logs/finplus.log`
+**Путь:** `logs/finpuls.log`
 
 **Ротация:**
 - Максимальный размер файла: 10MB
 - Количество файлов истории: 14
-- Формат: `finplus.log`, `finplus.log.1`, `finplus.log.2`, etc.
+- Формат: `finpuls.log`, `finpuls.log.1`, `finpuls.log.2`, etc.
 
 ### MDC (Mapped Diagnostic Context)
 
@@ -374,17 +374,17 @@ LoggingHelper.clear();
 
 **По Request ID:**
 ```bash
-docker logs finplus-backend | grep "requestId=abc123"
+docker logs finpuls-backend | grep "requestId=abc123"
 ```
 
 **По методу:**
 ```bash
-docker logs finplus-backend | grep "GET /api"
+docker logs finpuls-backend | grep "GET /api"
 ```
 
 **По статусу:**
 ```bash
-docker logs finplus-backend | grep "Статус: 500"
+docker logs finpuls-backend | grep "Статус: 500"
 ```
 
 ---
@@ -512,14 +512,14 @@ docker compose restart backend
 docker logs -f finpuls-backend
 
 # Последние 100 строк логов
-docker logs --tail 100 finplus-backend
+docker logs --tail 100 finpuls-backend
 
 # Логи с фильтром
-docker logs finplus-backend | grep "ERROR"
-docker logs finplus-backend | grep "requestId=abc123"
+docker logs finpuls-backend | grep "ERROR"
+docker logs finpuls-backend | grep "requestId=abc123"
 
 # Зайти в контейнер
-docker exec -it finplus-backend bash
+docker exec -it finpuls-backend bash
 
 # Проверить здоровье
 docker compose ps
