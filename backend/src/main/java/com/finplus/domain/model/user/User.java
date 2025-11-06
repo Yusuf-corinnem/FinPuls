@@ -12,6 +12,8 @@ import org.hibernate.annotations.UuidGenerator;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.NoArgsConstructor
+import lombok.AllArgsConstructor
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -22,6 +24,8 @@ import com.finplus.domain.model.user.UserStatus;
 @Table(name = "users")
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class User{
     @Id
     @UuidGenerator

@@ -27,7 +27,8 @@ public class UserService extends AbstractCrudService<User, UUID> {
         User user = new User();
         user.setClientId(cliendId);
         user.setSubscriptionId(subscriptionId);
-        user.setStatus(status != null ? status: UserStatus.ACTIVE);
+        if (status) 
+            user.setStatus(status);
         return user;
     }
 
