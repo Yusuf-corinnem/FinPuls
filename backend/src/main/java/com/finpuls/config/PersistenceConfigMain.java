@@ -16,19 +16,20 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 
 @Configuration
 @EnableTransactionManagement
-@EnableJpaRepositories(
-        basePackages = {
-                "com.finpuls.domain.repository"
-        },
-        excludeFilters = {
-                @org.springframework.context.annotation.ComponentScan.Filter(
-                        type = org.springframework.context.annotation.FilterType.REGEX,
-                        pattern = ".*\\.domain\\.repository\\.token\\..*"
-                )
-        },
-        entityManagerFactoryRef = "mainEntityManagerFactory",
-        transactionManagerRef = "mainTransactionManager"
-)
+// TODO: Раскомментировать когда будут созданы репозитории
+// @EnableJpaRepositories(
+//         basePackages = {
+//                 "com.finpuls.domain.repository"
+//         },
+//         excludeFilters = {
+//                 @org.springframework.context.annotation.ComponentScan.Filter(
+//                         type = org.springframework.context.annotation.FilterType.REGEX,
+//                         pattern = ".*\\.domain\\.repository\\.token\\..*"
+//                 )
+//         },
+//         entityManagerFactoryRef = "mainEntityManagerFactory",
+//         transactionManagerRef = "mainTransactionManager"
+// )
 public class PersistenceConfigMain {
 
     @Value("${DB_PG_URL}")
@@ -62,7 +63,8 @@ public class PersistenceConfigMain {
     public LocalContainerEntityManagerFactoryBean mainEntityManagerFactory(EntityManagerFactoryBuilder builder) {
         LocalContainerEntityManagerFactoryBean emf = builder
                 .dataSource(mainDataSource())
-                .packages("com.finpuls.domain.model")
+                // TODO: Раскомментировать когда будут созданы entities
+                // .packages("com.finpuls.domain.model")
                 .persistenceUnit("main")
                 .build();
         emf.getJpaPropertyMap().put("hibernate.dialect", hibernateDialect);

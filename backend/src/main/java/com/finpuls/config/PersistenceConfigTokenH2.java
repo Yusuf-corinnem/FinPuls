@@ -15,13 +15,14 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 
 @Configuration
 @EnableTransactionManagement
-@EnableJpaRepositories(
-        basePackages = {
-                "com.finpuls.domain.repository.token"
-        },
-        entityManagerFactoryRef = "tokenEntityManagerFactory",
-        transactionManagerRef = "tokenTransactionManager"
-)
+// TODO: Раскомментировать когда будут созданы репозитории для токенов
+// @EnableJpaRepositories(
+//         basePackages = {
+//                 "com.finpuls.domain.repository.token"
+//         },
+//         entityManagerFactoryRef = "tokenEntityManagerFactory",
+//         transactionManagerRef = "tokenTransactionManager"
+// )
 public class PersistenceConfigTokenH2 {
 
     @Value("${DB_H2_URL}")
@@ -53,7 +54,8 @@ public class PersistenceConfigTokenH2 {
     public LocalContainerEntityManagerFactoryBean tokenEntityManagerFactory(EntityManagerFactoryBuilder builder) {
         LocalContainerEntityManagerFactoryBean emf = builder
                 .dataSource(tokenDataSource())
-                .packages("com.finpuls.domain.model.token")
+                // TODO: Раскомментировать когда будут созданы entities для токенов
+                // .packages("com.finpuls.domain.model.token")
                 .persistenceUnit("token")
                 .build();
         emf.getJpaPropertyMap().put("hibernate.dialect", hibernateDialect);
