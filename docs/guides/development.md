@@ -111,13 +111,15 @@ docker exec -it finpuls-backend bash
 
 ```yaml
 services:
-  postgres-main:
-    - Порт: 5432
-    - База данных: finpuls (пользователи)
+  postgres:
+    - Порт: 5432 (внешний доступ)
+    - Контейнер: finpuls-postgres
+    - База данных: finpuls (пользователи, основная БД)
   
   postgres-bank:
-    - Порт: 5433
-    - База данных: bankdb (банковские данные)
+    - Порт: 5433 (внешний доступ)
+    - Контейнер: finpuls-postgres-bank
+    - База данных: bankdb (банковские данные - изолированная БД)
   
   backend:
     - Порт: 8080
@@ -742,17 +744,42 @@ SPRING_PROFILES_ACTIVE=dev
 # Logging Level
 LOG_LEVEL=INFO
 
-# Database (PostgreSQL)
-DB_USERNAME=finpuls
-DB_PASSWORD=your_password_here
+# Приложение
+SERVER_PORT=8080
+
+# Database - PostgreSQL (основная БД)
+DB_PG_URL=jdbc:postgresql://postgres:5432/finpuls
+DB_PG_DBNAME=finpuls
+DB_PG_USERNAME=finpuls
+DB_PG_PASSWORD=your_password_here
+DB_PG_DRIVER=org.postgresql.Driver
+DB_PG_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
+
+# Database - PostgreSQL (банковский модуль)
+DB_BANK_PG_URL=jdbc:postgresql://postgres-bank:5432/bankdb
+DB_BANK_PG_DBNAME=bankdb
+DB_BANK_PG_USERNAME=bank
+DB_BANK_PG_PASSWORD=your_bank_password_here
+DB_BANK_PG_DRIVER=org.postgresql.Driver
+DB_BANK_PG_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
+
+# Database - H2 (токены, in-memory)
+DB_H2_URL=jdbc:h2:mem:banktokens;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+DB_H2_DBNAME=bank_tokens
+DB_H2_USERNAME=sa
+DB_H2_PASSWORD=
+DB_H2_DRIVER=org.h2.Driver
+DB_H2_PLATFORM=org.hibernate.dialect.H2Dialect
 
 # JWT
 JWT_SECRET=your-secret-key-here-min-256-bits
 JWT_EXPIRATION=3600
 JWT_REFRESH_EXPIRATION=86400
 
-# Bank Service URL
-BANK_SERVICE_URL=http://localhost:8081
+# Bank API base URLs
+BANK_VBANK_BASE_URL=https://vbank.open.bankingapi.ru
+BANK_ABANK_BASE_URL=https://abank.open.bankingapi.ru
+BANK_SBANK_BASE_URL=https://sbank.open.bankingapi.ru
 
 # CORS (опционально)
 CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
@@ -760,13 +787,39 @@ CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
 
 ### Значения по умолчанию
 
-Если переменная не указана в `.env`, используются значения из `application.properties`:
+Если переменная не указана в `.env`, используются значения из `docker-compose.yml` и `application.properties`:
+
+**Приложение:**
 - `SPRING_PROFILES_ACTIVE`: `dev`
 - `LOG_LEVEL`: `INFO`
+- `SERVER_PORT`: `8080`
+
+**Основная БД (PostgreSQL):**
+- `DB_PG_DBNAME`: `finpuls`
+- `DB_PG_USERNAME`: `finpuls`
+- `DB_PG_PASSWORD`: `finpuls` (в production измените!)
+
+**Банковская БД (PostgreSQL):**
+- `DB_BANK_PG_DBNAME`: `bankdb`
+- `DB_BANK_PG_USERNAME`: `bank`
+- `DB_BANK_PG_PASSWORD`: `bank` (в production измените!)
+- `DB_BANK_PG_URL`: `jdbc:postgresql://postgres-bank:5432/bankdb`
+
+**H2 (токены):**
+- `DB_H2_USERNAME`: `sa`
+- `DB_H2_PASSWORD`: (пусто)
+
+**JWT:**
 - `JWT_EXPIRATION`: `3600` (1 час)
 - `JWT_REFRESH_EXPIRATION`: `86400` (24 часа)
-- `BANK_SERVICE_URL`: `http://localhost:8081`
-- CORS: `http://localhost:3000,http://localhost:5173`
+
+**Bank API:**
+- `BANK_VBANK_BASE_URL`: `https://vbank.open.bankingapi.ru`
+- `BANK_ABANK_BASE_URL`: `https://abank.open.bankingapi.ru`
+- `BANK_SBANK_BASE_URL`: `https://sbank.open.bankingapi.ru`
+
+**CORS:**
+- По умолчанию: `http://localhost:3000,http://localhost:5173`
 
 ---
 
@@ -931,8 +984,13 @@ curl -H "Authorization: Bearer <token>" http://localhost:8080/api/balances
 
 ## 📚 Дополнительные ресурсы
 
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - Архитектура приложения
-- [PLAN.md](./PLAN.md) - План разработки
+- [ARCHITECTURE.md](../ARCHITECTURE.md) - Архитектура приложения
+- [PLAN.md](../PLAN.md) - План разработки
+- [Java Development Guide](./java-development.md) - Руководство по разработке на Java
+- [Backend Module](../modules/backend.md) - Описание Backend модуля
+- [Bank Module](../modules/bank-module.md) - Описание Bank Module
+- [Backend Entities](../entities/backend.md) - Сущности Backend модуля
+- [Bank Module Entities](../entities/bank-module.md) - Сущности Bank Module
 - [Spring Boot Documentation](https://spring.io/projects/spring-boot)
 - [Spring Security Documentation](https://spring.io/projects/spring-security)
 - [JWT Documentation](https://jwt.io/)

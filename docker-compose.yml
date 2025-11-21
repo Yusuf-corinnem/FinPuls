@@ -18,6 +18,25 @@ services:
     networks:
       - finpuls-network
     restart: unless-stopped
+  postgres-bank:
+    image: postgres:16-alpine
+    container_name: finpuls-postgres-bank
+    environment:
+      - POSTGRES_DB=${DB_BANK_PG_DBNAME:-bankdb}
+      - POSTGRES_USER=${DB_BANK_PG_USERNAME:-bank}
+      - POSTGRES_PASSWORD=${DB_BANK_PG_PASSWORD:-bank}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_bank_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_BANK_PG_USERNAME:-bank} -d ${DB_BANK_PG_DBNAME:-bankdb}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - finpuls-network
+    restart: unless-stopped
   backend:
     build:
       context: ./backend
@@ -45,6 +64,14 @@ services:
       - DB_PG_DRIVER=${DB_PG_DRIVER}
       - DB_PG_PLATFORM=${DB_PG_PLATFORM}
 
+      # PostgreSQL для банковского модуля (через docker-compose сервис postgres-bank)
+      - DB_BANK_PG_URL=${DB_BANK_PG_URL:-jdbc:postgresql://postgres-bank:5432/bankdb}
+      - DB_BANK_PG_DBNAME=${DB_BANK_PG_DBNAME:-bankdb}
+      - DB_BANK_PG_USERNAME=${DB_BANK_PG_USERNAME:-bank}
+      - DB_BANK_PG_PASSWORD=${DB_BANK_PG_PASSWORD:-bank}
+      - DB_BANK_PG_DRIVER=${DB_BANK_PG_DRIVER:-org.postgresql.Driver}
+      - DB_BANK_PG_PLATFORM=${DB_BANK_PG_PLATFORM:-org.hibernate.dialect.PostgreSQLDialect}
+
       # Bank API base URLs (поддомены)
       - BANK_VBANK_BASE_URL=${BANK_VBANK_BASE_URL:-https://vbank.open.bankingapi.ru}
       - BANK_ABANK_BASE_URL=${BANK_ABANK_BASE_URL:-https://abank.open.bankingapi.ru}
@@ -56,6 +83,8 @@ services:
       - ./logs:/app/logs
     depends_on:
       postgres:
+        condition: service_healthy
+      postgres-bank:
         condition: service_healthy
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
@@ -101,5 +130,6 @@ networks:
 volumes:
   logs:
   postgres_data:
+  postgres_bank_data:
 
 

@@ -24,15 +24,15 @@
 - **Изолированный Bank Module** — отдельный модуль внутри проекта с полной изоляцией (свои конфиги, сервисы, логирование, метрики), готовый к выносу в микросервис
 - **Backend как прослойка** — API Gateway между клиентом и банком, инициализирует роутер Bank Module
 - **Авторизация** — логин/пароль с JWT токенами
-- **Две БД** — PostgreSQL для основных данных, H2 для токенов
+- **Три БД** — PostgreSQL для основных данных, PostgreSQL для банковских данных, H2 для токенов
 - **Middleware для токенов** — автоматическая проверка авторизации
 
 ### Архитектурная схема
 
 ```
-Frontend → Backend API (Gateway) → Bank Module (внутри проекта) → PostgreSQL
-                ↓
-            H2 (tokens)
+Frontend → Backend API (Gateway) → Bank Module (внутри проекта) → PostgreSQL (bank)
+                ↓                                    ↓
+            H2 (tokens)                    PostgreSQL (main)
 ```
 
 **Примечание:** Bank Module находится внутри того же проекта, но полностью изолирован. В будущем его можно легко вынести в отдельный микросервис, просто указав URL банка.
@@ -1010,9 +1010,9 @@ management.metrics.export.prometheus.enabled=true
 
 ```properties
 # PostgreSQL (Банковские данные)
-spring.datasource.bank.url=jdbc:postgresql://localhost:5432/bankdb
-spring.datasource.bank.username=${DB_USERNAME:bank}
-spring.datasource.bank.password=${DB_PASSWORD:password}
+spring.datasource.bank.url=${DB_BANK_PG_URL:jdbc:postgresql://postgres-bank:5432/bankdb}
+spring.datasource.bank.username=${DB_BANK_PG_USERNAME:bank}
+spring.datasource.bank.password=${DB_BANK_PG_PASSWORD:bank}
 spring.datasource.bank.driver-class-name=org.postgresql.Driver
 spring.jpa.bank.database-platform=org.hibernate.dialect.PostgreSQLDialect
 spring.jpa.bank.hibernate.ddl-auto=update
@@ -1031,12 +1031,44 @@ management.metrics.bank.enabled=true
 
 - `LOG_LEVEL` — уровень логирования (INFO, DEBUG, WARN). По умолчанию: INFO
 - `SPRING_PROFILES_ACTIVE` — активный профиль (dev, prod)
-- `DB_USERNAME` — имя пользователя PostgreSQL
-- `DB_PASSWORD` — пароль PostgreSQL
+- `SERVER_PORT` — порт приложения (по умолчанию: 8080)
+
+**Основная БД (PostgreSQL):**
+- `DB_PG_URL` — URL подключения к основной БД
+- `DB_PG_DBNAME` — имя базы данных (по умолчанию: finpuls)
+- `DB_PG_USERNAME` — имя пользователя (по умолчанию: finpuls)
+- `DB_PG_PASSWORD` — пароль (по умолчанию: finpuls)
+- `DB_PG_DRIVER` — драйвер JDBC (org.postgresql.Driver)
+- `DB_PG_PLATFORM` — диалект Hibernate (org.hibernate.dialect.PostgreSQLDialect)
+
+**Банковская БД (PostgreSQL):**
+- `DB_BANK_PG_URL` — URL подключения к банковской БД (по умолчанию: jdbc:postgresql://postgres-bank:5432/bankdb)
+- `DB_BANK_PG_DBNAME` — имя базы данных (по умолчанию: bankdb)
+- `DB_BANK_PG_USERNAME` — имя пользователя (по умолчанию: bank)
+- `DB_BANK_PG_PASSWORD` — пароль (по умолчанию: bank)
+- `DB_BANK_PG_DRIVER` — драйвер JDBC (org.postgresql.Driver)
+- `DB_BANK_PG_PLATFORM` — диалект Hibernate (org.hibernate.dialect.PostgreSQLDialect)
+
+**H2 (токены):**
+- `DB_H2_URL` — URL подключения к H2 (in-memory)
+- `DB_H2_DBNAME` — имя базы данных
+- `DB_H2_USERNAME` — имя пользователя (по умолчанию: sa)
+- `DB_H2_PASSWORD` — пароль
+- `DB_H2_DRIVER` — драйвер JDBC (org.h2.Driver)
+- `DB_H2_PLATFORM` — диалект Hibernate (org.hibernate.dialect.H2Dialect)
+
+**JWT:**
 - `JWT_SECRET` — секретный ключ для JWT
 - `JWT_EXPIRATION` — время жизни access token (секунды)
 - `JWT_REFRESH_EXPIRATION` — время жизни refresh token (секунды)
-- `BANK_SERVICE_URL` — URL Bank Service
+
+**Bank API:**
+- `BANK_VBANK_BASE_URL` — базовый URL для Virtual Bank
+- `BANK_ABANK_BASE_URL` — базовый URL для Awesome Bank
+- `BANK_SBANK_BASE_URL` — базовый URL для Smart Bank
+
+**CORS:**
+- `CORS_ALLOWED_ORIGINS` — разрешенные источники для CORS
 
 ---
 
@@ -1048,45 +1080,88 @@ management.metrics.bank.enabled=true
 version: '3.8'
 
 services:
-  postgres-main:
+  postgres:
     image: postgres:16-alpine
+    container_name: finpuls-postgres
     environment:
-      POSTGRES_DB: finpuls
-      POSTGRES_USER: finpuls
-      POSTGRES_PASSWORD: ${DB_PASSWORD:password}
+      - POSTGRES_DB=${DB_PG_DBNAME:-finpuls}
+      - POSTGRES_USER=${DB_PG_USERNAME:-finpuls}
+      - POSTGRES_PASSWORD=${DB_PG_PASSWORD:-finpuls}
     ports:
       - "5432:5432"
     volumes:
-      - postgres-main-data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_PG_USERNAME:-finpuls} -d ${DB_PG_DBNAME:-finpuls}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - finpuls-network
+    restart: unless-stopped
 
   postgres-bank:
     image: postgres:16-alpine
+    container_name: finpuls-postgres-bank
     environment:
-      POSTGRES_DB: bankdb
-      POSTGRES_USER: bank
-      POSTGRES_PASSWORD: ${DB_PASSWORD:password}
+      - POSTGRES_DB=${DB_BANK_PG_DBNAME:-bankdb}
+      - POSTGRES_USER=${DB_BANK_PG_USERNAME:-bank}
+      - POSTGRES_PASSWORD=${DB_BANK_PG_PASSWORD:-bank}
     ports:
       - "5433:5432"
     volumes:
-      - postgres-bank-data:/var/lib/postgresql/data
+      - postgres_bank_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_BANK_PG_USERNAME:-bank} -d ${DB_BANK_PG_DBNAME:-bankdb}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - finpuls-network
+    restart: unless-stopped
 
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: finpuls-backend
     ports:
-      - "8080:8080"
+      - "${SERVER_PORT:-8080}:${SERVER_PORT:-8080}"
     environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - LOG_LEVEL=${LOG_LEVEL:INFO}
-      - DB_USERNAME=finpuls
-      - DB_PASSWORD=${DB_PASSWORD:password}
-      - JWT_SECRET=${JWT_SECRET:your-secret-key}
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-dev}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      # PostgreSQL (основная БД)
+      - DB_PG_URL=${DB_PG_URL}
+      - DB_PG_DBNAME=${DB_PG_DBNAME}
+      - DB_PG_USERNAME=${DB_PG_USERNAME}
+      - DB_PG_PASSWORD=${DB_PG_PASSWORD}
+      - DB_PG_DRIVER=${DB_PG_DRIVER}
+      - DB_PG_PLATFORM=${DB_PG_PLATFORM}
+      # PostgreSQL (банковская БД)
+      - DB_BANK_PG_URL=${DB_BANK_PG_URL:-jdbc:postgresql://postgres-bank:5432/bankdb}
+      - DB_BANK_PG_DBNAME=${DB_BANK_PG_DBNAME:-bankdb}
+      - DB_BANK_PG_USERNAME=${DB_BANK_PG_USERNAME:-bank}
+      - DB_BANK_PG_PASSWORD=${DB_BANK_PG_PASSWORD:-bank}
+      - DB_BANK_PG_DRIVER=${DB_BANK_PG_DRIVER:-org.postgresql.Driver}
+      - DB_BANK_PG_PLATFORM=${DB_BANK_PG_PLATFORM:-org.hibernate.dialect.PostgreSQLDialect}
+      # H2 (токены)
+      - DB_H2_URL=${DB_H2_URL:-jdbc:h2:mem:bank_tokens;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
+      - DB_H2_DBNAME=${DB_H2_DBNAME:-bank_tokens}
+      - DB_H2_USERNAME=${DB_H2_USERNAME:-sa}
+      - DB_H2_PASSWORD=${DB_H2_PASSWORD:-}
+      - DB_H2_DRIVER=${DB_H2_DRIVER:-org.h2.Driver}
+      - DB_H2_PLATFORM=${DB_H2_PLATFORM:-org.hibernate.dialect.H2Dialect}
+      # Bank API
+      - BANK_VBANK_BASE_URL=${BANK_VBANK_BASE_URL:-https://vbank.open.bankingapi.ru}
+      - BANK_ABANK_BASE_URL=${BANK_ABANK_BASE_URL:-https://abank.open.bankingapi.ru}
+      - BANK_SBANK_BASE_URL=${BANK_SBANK_BASE_URL:-https://sbank.open.bankingapi.ru}
+      # CORS
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-}
     depends_on:
-      - postgres-main
-      - postgres-bank
+      postgres:
+        condition: service_healthy
+      postgres-bank:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s
@@ -1117,8 +1192,8 @@ services:
       - finpuls-network
 
 volumes:
-  postgres-main-data:
-  postgres-bank-data:
+  postgres_data:
+  postgres_bank_data:
 
 networks:
   finpuls-network:
