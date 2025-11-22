@@ -26,7 +26,7 @@ services:
       - POSTGRES_USER=${DB_BANK_PG_USERNAME:-bank}
       - POSTGRES_PASSWORD=${DB_BANK_PG_PASSWORD:-bank}
     ports:
-      - "${DB_BANK_PG_PORT:-5433}:5432"
+      - "${DB_BANK_PG_PORT:-5431}:5432"
     volumes:
       - postgres_bank_data:/var/lib/postgresql/data
     healthcheck:
@@ -68,7 +68,9 @@ services:
 
       # PostgreSQL для банковского модуля (через docker-compose сервис postgres-bank)
       # Внутри Docker сети используется порт 5432 (DB_BANK_PG_PORT - это внешний порт)
-      - DB_BANK_PG_URL=jdbc:postgresql://postgres-bank:5432/${DB_BANK_PG_DBNAME:-bankdb}
+      - DB_BANK_PG_URL=jdbc:postgresql://${DB_BANK_PG_HOST:-postgres-bank}:5432/${DB_BANK_PG_DBNAME:-bankdb}
+      - DB_BANK_PG_HOST=${DB_BANK_PG_HOST:-postgres}
+      - DB_BANK_PG_PORT=${DB_BANK_PG_PORT:-5431}
       - DB_BANK_PG_DBNAME=${DB_BANK_PG_DBNAME:-bankdb}
       - DB_BANK_PG_USERNAME=${DB_BANK_PG_USERNAME:-bank}
       - DB_BANK_PG_PASSWORD=${DB_BANK_PG_PASSWORD:-bank}
