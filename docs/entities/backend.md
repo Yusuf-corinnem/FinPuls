@@ -515,7 +515,7 @@ public class PasswordEncoder {
 
 **Связанные документы:**
 - [ARCHITECTURE.md](../ARCHITECTURE.md) - Архитектура системы
-- [Java Development Guide](../guides/java-development.md) - Руководство по разработке
+- [Development Guide](../guides/setup/development.md) - Руководство по разработке
 - [PLAN.md](../PLAN.md) - План разработки
 - [Backend Module](../modules/backend.md) - Описание Backend модуля
 - [Bank Module Entities](./bank-module.md) - Сущности банковского модуля

@@ -13,8 +13,14 @@ docs/
 ├── PLAN.md                      # План разработки
 │
 ├── guides/                      # Руководства
-│   ├── development.md           # Руководство по разработке, настройка, запуск
-│   └── java-development.md      # Руководство по разработке на Java
+│   ├── ai/                      # Промпты для ИИ
+│   │   ├── fullstack-prompt-short.md  # Промпт для Full-stack разработчика
+│   │   ├── intern-java-prompt.md     # Промпт для интерна Java разработчика
+│   │   └── learning-strategy.md      # Стратегия обучения Java с ИИ
+│   ├── coding/                  # Стиль кода и принципы
+│   │   └── code-style.md        # Стиль кода и соглашения
+│   └── setup/                   # Настройка и запуск
+│       └── development.md      # Руководство по разработке, настройка, запуск
 │
 ├── modules/                     # Описание модулей
 │   ├── backend.md               # Backend модуль (API Gateway)
@@ -38,10 +44,16 @@ docs/
    - [PLAN.md](./PLAN.md) - этапы и приоритеты
 
 3. **Настройте окружение:**
-   - [guides/development.md](./guides/development.md) - настройка и запуск
+   - [guides/setup/development.md](./guides/setup/development.md) - настройка и запуск
 
-4. **Если возвращаетесь к Java:**
-   - [guides/java-development.md](./guides/java-development.md) - стратегия разработки
+4. **Если возвращаетесь к Java (Full-stack разработчик):**
+   - [guides/ai/learning-strategy.md](./guides/ai/learning-strategy.md) - стратегия обучения с ИИ
+   - [guides/ai/fullstack-prompt-short.md](./guides/ai/fullstack-prompt-short.md) - промпт для ИИ
+   - [guides/coding/code-style.md](./guides/coding/code-style.md) - стиль кода и соглашения
+
+5. **Если интерн Java разработчик:**
+   - [guides/ai/intern-java-prompt.md](./guides/ai/intern-java-prompt.md) - промпт для ИИ
+   - [guides/coding/code-style.md](./guides/coding/code-style.md) - стиль кода и соглашения
 
 ### Для работы с модулями
 
@@ -64,8 +76,16 @@ docs/
 
 ### Руководства
 
-- **[guides/development.md](./guides/development.md)** - Руководство по разработке: настройка окружения, запуск, Docker, переменные окружения
-- **[guides/java-development.md](./guides/java-development.md)** - Стратегия разработки на Java: что делать самому, когда обращаться за помощью
+#### Настройка и запуск
+- **[guides/setup/development.md](./guides/setup/development.md)** - Руководство по разработке: настройка окружения, запуск, Docker, переменные окружения, принципы DRY/KISS/YAGNI
+
+#### Промпты для ИИ
+- **[guides/ai/fullstack-prompt-short.md](./guides/ai/fullstack-prompt-short.md)** - Промпт для Full-stack разработчика (для быстрого использования)
+- **[guides/ai/intern-java-prompt.md](./guides/ai/intern-java-prompt.md)** - Промпт для интерна Java разработчика
+- **[guides/ai/learning-strategy.md](./guides/ai/learning-strategy.md)** - Стратегия обучения Java с использованием ИИ: методика, план обучения
+
+#### Стиль кода
+- **[guides/coding/code-style.md](./guides/coding/code-style.md)** - Стиль кода и соглашения: именование, структура, ООП принципы, именование пакетов
 
 ### Модули
 
@@ -84,7 +104,7 @@ docs/
 ### Авторизация и безопасность
 - [modules/backend.md](./modules/backend.md) - раздел "Авторизация"
 - [entities/backend.md](./entities/backend.md) - раздел "Token"
-- [guides/development.md](./guides/development.md) - раздел "Система авторизации"
+- [guides/setup/development.md](./guides/setup/development.md) - раздел "Система авторизации"
 
 ### Базы данных
 - [ARCHITECTURE.md](./ARCHITECTURE.md) - раздел "База данных"
@@ -97,8 +117,8 @@ docs/
 - [ARCHITECTURE.md](./ARCHITECTURE.md) - раздел "API Формат ответов"
 
 ### Разработка
-- [guides/java-development.md](./guides/java-development.md) - стратегия разработки
-- [guides/development.md](./guides/development.md) - настройка и запуск
+- [guides/setup/development.md](./guides/setup/development.md) - настройка, запуск, принципы DRY/KISS/YAGNI
+- [guides/coding/code-style.md](./guides/coding/code-style.md) - стиль кода и соглашения
 - [PLAN.md](./PLAN.md) - план разработки
 
 ---

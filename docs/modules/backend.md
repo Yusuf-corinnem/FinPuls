@@ -176,7 +176,7 @@ public class BankRouterConfig {
 
 - [Сущности Backend](../entities/backend.md) - описание Entity классов
 - [Архитектура](../ARCHITECTURE.md) - общая архитектура системы
-- [Руководство по разработке](../guides/development.md) - настройка и запуск
+- [Руководство по разработке](../guides/setup/development.md) - настройка и запуск
 
 ---
 

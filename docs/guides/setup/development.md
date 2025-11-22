@@ -1136,8 +1136,8 @@ curl -H "Authorization: Bearer <token>" http://localhost:8080/api/balances
 
 - [ARCHITECTURE.md](../ARCHITECTURE.md) - Архитектура приложения
 - [PLAN.md](../PLAN.md) - План разработки
-- [AI Learning Strategy](./ai-learning-strategy.md) - Стратегия обучения Java с ИИ
-- [Code Style Guide](./code-style.md) - Стиль кода и соглашения
+- [AI Learning Strategy](../ai/learning-strategy.md) - Стратегия обучения Java с ИИ
+- [Code Style Guide](../coding/code-style.md) - Стиль кода и соглашения
 - [Backend Module](../modules/backend.md) - Описание Backend модуля
 - [Bank Module](../modules/bank-module.md) - Описание Bank Module
 - [Backend Entities](../entities/backend.md) - Сущности Backend модуля

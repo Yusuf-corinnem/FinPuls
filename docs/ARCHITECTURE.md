@@ -648,9 +648,12 @@ FinPuls/
 ├── docker-compose.yml
 ├── .env.example
 ├── ARCHITECTURE.md
-├── DEVELOPMENT.md
 ├── PLAN.md
-└── README.md
+├── README.md
+└── docs/
+    └── guides/
+        └── setup/
+            └── development.md
 ```
 
 ---

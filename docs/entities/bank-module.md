@@ -563,6 +563,6 @@ List<Transaction> pendingTransactions = transactionRepository.findByStatus(Trans
 - [ARCHITECTURE.md](../ARCHITECTURE.md) - Архитектура системы
 - [Backend Entities](./backend.md) - Сущности Backend модуля
 - [Bank Module](../modules/bank-module.md) - Описание Bank Module
-- [Java Development Guide](../guides/java-development.md) - Руководство по разработке
+- [Development Guide](../guides/setup/development.md) - Руководство по разработке
 - [PLAN.md](../PLAN.md) - План разработки
 
