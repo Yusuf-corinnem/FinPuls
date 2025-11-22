@@ -7,7 +7,7 @@ services:
       - POSTGRES_USER=${DB_PG_USERNAME:-finpuls}
       - POSTGRES_PASSWORD=${DB_PG_PASSWORD:-finpuls}
     ports:
-      - "5432:5432"
+      - "${DB_PG_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -26,7 +26,7 @@ services:
       - POSTGRES_USER=${DB_BANK_PG_USERNAME:-bank}
       - POSTGRES_PASSWORD=${DB_BANK_PG_PASSWORD:-bank}
     ports:
-      - "5433:5432"
+      - "${DB_BANK_PG_PORT:-5433}:5432"
     volumes:
       - postgres_bank_data:/var/lib/postgresql/data
     healthcheck:
@@ -49,36 +49,38 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
 
       # H2 (in-memory) - использовать при локальной разработке без внешней БД
-      - DB_H2_URL=${DB_H2_URL:-jdbc:h2:mem:bank_tokens;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
-      - DB_H2_DBNAME=${DB_H2_DBNAME:-bank_tokens}
-      - DB_H2_USERNAME=${DB_H2_USERNAME:-sa}
-      - DB_H2_PASSWORD=${DB_H2_PASSWORD:-}
+      - DB_H2_URL=${DB_H2_URL:-jdbc:h2:mem:tokens;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
+      - DB_H2_DBNAME=${DB_H2_DBNAME:-tokens}
+      - DB_H2_USERNAME=${DB_H2_USERNAME:-finpuls}
+      - DB_H2_PASSWORD=${DB_H2_PASSWORD:-finpuls}
       - DB_H2_DRIVER=${DB_H2_DRIVER:-org.h2.Driver}
       - DB_H2_PLATFORM=${DB_H2_PLATFORM:-org.hibernate.dialect.H2Dialect}
 
-      # PostgreSQL (через docker-compose сервис postgres)
-      - DB_PG_URL=${DB_PG_URL}
-      - DB_PG_DBNAME=${DB_PG_DBNAME}
-      - DB_PG_USERNAME=${DB_PG_USERNAME}
-      - DB_PG_PASSWORD=${DB_PG_PASSWORD}
-      - DB_PG_DRIVER=${DB_PG_DRIVER}
-      - DB_PG_PLATFORM=${DB_PG_PLATFORM}
+      # PostgreSQL (основная БД через docker-compose сервис postgres)
+      - DB_PG_URL=jdbc:postgresql://${DB_PG_HOST:-postgres}:${DB_PG_PORT:-5432}/${DB_PG_DBNAME:-finpuls}
+      - DB_PG_HOST=${DB_PG_HOST:-postgres}
+      - DB_PG_PORT=${DB_PG_PORT:-5432}
+      - DB_PG_DBNAME=${DB_PG_DBNAME:-finpuls}
+      - DB_PG_USERNAME=${DB_PG_USERNAME:-finpuls}
+      - DB_PG_PASSWORD=${DB_PG_PASSWORD:-finpuls}
+      - DB_PG_DRIVER=${DB_PG_DRIVER:-org.postgresql.Driver}
+      - DB_PG_PLATFORM=${DB_PG_PLATFORM:-org.hibernate.dialect.PostgreSQLDialect}
 
       # PostgreSQL для банковского модуля (через docker-compose сервис postgres-bank)
-      - DB_BANK_PG_URL=${DB_BANK_PG_URL:-jdbc:postgresql://postgres-bank:5432/bankdb}
+      # Внутри Docker сети используется порт 5432 (DB_BANK_PG_PORT - это внешний порт)
+      - DB_BANK_PG_URL=jdbc:postgresql://postgres-bank:5432/${DB_BANK_PG_DBNAME:-bankdb}
       - DB_BANK_PG_DBNAME=${DB_BANK_PG_DBNAME:-bankdb}
       - DB_BANK_PG_USERNAME=${DB_BANK_PG_USERNAME:-bank}
       - DB_BANK_PG_PASSWORD=${DB_BANK_PG_PASSWORD:-bank}
       - DB_BANK_PG_DRIVER=${DB_BANK_PG_DRIVER:-org.postgresql.Driver}
       - DB_BANK_PG_PLATFORM=${DB_BANK_PG_PLATFORM:-org.hibernate.dialect.PostgreSQLDialect}
 
-      # Bank API base URLs (поддомены)
-      - BANK_VBANK_BASE_URL=${BANK_VBANK_BASE_URL:-https://vbank.open.bankingapi.ru}
-      - BANK_ABANK_BASE_URL=${BANK_ABANK_BASE_URL:-https://abank.open.bankingapi.ru}
-      - BANK_SBANK_BASE_URL=${BANK_SBANK_BASE_URL:-https://sbank.open.bankingapi.ru}
-
-      # CORS (опционально)
-      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-}
+      # CORS Configuration
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
+      - CORS_ALLOWED_METHODS=${CORS_ALLOWED_METHODS:-GET,POST,PUT,DELETE,OPTIONS,PATCH}
+      - CORS_ALLOWED_HEADERS=${CORS_ALLOWED_HEADERS:-*}
+      - CORS_ALLOW_CREDENTIALS=${CORS_ALLOW_CREDENTIALS:-true}
+      - CORS_MAX_AGE=${CORS_MAX_AGE:-3600}
     volumes:
       - ./logs:/app/logs
     depends_on:

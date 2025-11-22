@@ -16,7 +16,7 @@
     <artifactId>finpuls</artifactId>
     <version>1.0.0</version>
     <name>FinPuls</name>
-    <description>FinPuls - Мультибанковское приложение для управления личными финансами</description>
+    <description>FinPuls - Банковское приложение для управления личными финансами</description>
 
     <properties>
         <java.version>21</java.version>
