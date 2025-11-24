@@ -47,6 +47,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-dev}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_PATH=${LOG_PATH:-/app/logs}
 
       # H2 (in-memory) - использовать при локальной разработке без внешней БД
       - DB_H2_URL=${DB_H2_URL:-jdbc:h2:mem:tokens;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
@@ -55,6 +56,8 @@ services:
       - DB_H2_PASSWORD=${DB_H2_PASSWORD:-finpuls}
       - DB_H2_DRIVER=${DB_H2_DRIVER:-org.h2.Driver}
       - DB_H2_PLATFORM=${DB_H2_PLATFORM:-org.hibernate.dialect.H2Dialect}
+      - DB_H2_SHOW_SQL=${DB_H2_SHOW_SQL:-false}
+      - DB_H2_FORMAT_SQL=${DB_H2_FORMAT_SQL:-true}
 
       # PostgreSQL (основная БД через docker-compose сервис postgres)
       - DB_PG_URL=jdbc:postgresql://${DB_PG_HOST:-postgres}:${DB_PG_PORT:-5432}/${DB_PG_DBNAME:-finpuls}

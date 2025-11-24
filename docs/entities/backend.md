@@ -20,15 +20,15 @@
 
 ### Поля
 
-| Поле | Тип | Описание | Обязательное | Уникальное |
-|------|-----|----------|---------------|------------|
-| `id` | `Long` | Первичный ключ | ✅ | ✅ |
-| `username` | `String` | Имя пользователя | ✅ | ✅ |
-| `email` | `String` | Email адрес | ❌ | ❌ |
-| `firstName` | `String` | Имя | ❌ | ❌ |
-| `lastName` | `String` | Фамилия | ❌ | ❌ |
-| `createdAt` | `LocalDateTime` | Дата создания | ✅ | ❌ |
-| `updatedAt` | `LocalDateTime` | Дата обновления | ❌ | ❌ |
+| Поле | Тип | Описание | Обязательное | Уникальное | Источник |
+|------|-----|----------|---------------|------------|----------|
+| `id` | `UUID` | Первичный ключ | ✅ | ✅ | BaseEntity |
+| `firstname` | `String` | Имя | ❌ | ❌ | UserEntity |
+| `lastname` | `String` | Фамилия | ❌ | ❌ | UserEntity |
+| `secondname` | `String` | Отчество | ❌ | ❌ | UserEntity |
+| `email` | `String` | Email адрес | ❌ | ❌ | UserEntity |
+| `createdAt` | `LocalDateTime` | Дата создания | ✅ | ❌ | BaseEntity |
+| `updatedAt` | `LocalDateTime` | Дата обновления | ❌ | ❌ | BaseEntity |
 
 ### Связи
 - **OneToOne** с `UserCredentials` - один пользователь имеет одни учетные данные
@@ -44,30 +44,38 @@
 ### Примеры значений
 
 ```java
-username: "ivan_ivanov"
+id: "550e8400-e29b-41d4-a716-446655440000"  // UUID
+firstname: "Ivan"
+lastname: "Ivanov"
+secondname: "Petrovich"
 email: "ivan@example.com"
-firstName: "Ivan"
-lastName: "Ivanov"
 createdAt: 2025-01-20T10:00:00
+updatedAt: 2025-01-20T10:00:00
 ```
 
 ### Индексы
-- `username` - уникальный индекс
 - `email` - индекс для быстрого поиска (если нужен)
+- `id` - первичный ключ (UUID)
 
 ### SQL схема
 
 ```sql
 CREATE TABLE users (
-    id BIGSERIAL PRIMARY KEY,
-    username VARCHAR(100) NOT NULL UNIQUE,
+    id UUID PRIMARY KEY,
+    firstname VARCHAR(100),
+    lastname VARCHAR(100),
+    secondname VARCHAR(100),
     email VARCHAR(255),
-    first_name VARCHAR(100),
-    last_name VARCHAR(100),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP,
+    INDEX idx_email (email)
 );
 ```
+
+### Наследование от BaseEntity
+- `UserEntity` наследуется от `BaseEntity`
+- `BaseEntity` предоставляет: `id` (UUID), `createdAt`, `updatedAt`
+- `@CreatedDate` и `@LastModifiedDate` автоматически заполняются через `@EnableJpaAuditing`
 
 ### Связь с Bank Module
 - Связь происходит через промежуточную таблицу `user_bank_clients`
@@ -83,25 +91,27 @@ CREATE TABLE users (
 
 ### Поля
 
-| Поле | Тип | Описание | Обязательное | Уникальное |
-|------|-----|----------|---------------|------------|
-| `id` | `Long` | Первичный ключ | ✅ | ✅ |
-| `login` | `String` | Логин для входа | ✅ | ✅ |
-| `password` | `String` | Хэшированный пароль | ✅ | ❌ |
-| `userId` | `Long` | ID пользователя | ✅ | ✅ |
-| `createdAt` | `LocalDateTime` | Дата создания | ✅ | ❌ |
-| `updatedAt` | `LocalDateTime` | Дата обновления | ❌ | ❌ |
+| Поле | Тип | Описание | Обязательное | Уникальное | Источник |
+|------|-----|----------|---------------|------------|----------|
+| `id` | `UUID` | Первичный ключ | ✅ | ✅ | BaseEntity |
+| `login` | `String` | Логин для входа | ✅ | ✅ | UserCredentialsEntity |
+| `password` | `String` | Хэшированный пароль | ✅ | ❌ | UserCredentialsEntity |
+| `user` | `UserEntity` | Связь с пользователем | ✅ | ✅ | UserCredentialsEntity |
+| `createdAt` | `LocalDateTime` | Дата создания | ✅ | ❌ | BaseEntity |
+| `updatedAt` | `LocalDateTime` | Дата обновления | ❌ | ❌ | BaseEntity |
 
 ### Связи
-- **OneToOne** с `User` - учетные данные принадлежат одному пользователю
+- **OneToOne** с `UserEntity` - учетные данные принадлежат одному пользователю (JPA связь, одна БД)
 
 ### Примеры значений
 
 ```java
+id: "550e8400-e29b-41d4-a716-446655440000"  // UUID
 login: "ivan_ivanov"
 password: "$2a$10$..."  // BCrypt хэш
-userId: 1
+user: UserEntity(id=uuid-1, ...)
 createdAt: 2025-01-20T10:00:00
+updatedAt: 2025-01-20T10:00:00
 ```
 
 ### Безопасность
@@ -117,15 +127,21 @@ createdAt: 2025-01-20T10:00:00
 
 ```sql
 CREATE TABLE user_credentials (
-    id BIGSERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY,
     login VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    user_id BIGINT NOT NULL UNIQUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    user_id UUID NOT NULL UNIQUE,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_login (login)
 );
 ```
+
+### Наследование от BaseEntity
+- `UserCredentialsEntity` наследуется от `BaseEntity`
+- `BaseEntity` предоставляет: `id` (UUID), `createdAt`, `updatedAt`
+- `@CreatedDate` и `@LastModifiedDate` автоматически заполняются через `@EnableJpaAuditing`
 
 ---
 
@@ -136,31 +152,36 @@ CREATE TABLE user_credentials (
 
 ### Поля
 
-| Поле | Тип | Описание | Обязательное | Уникальное |
-|------|-----|----------|---------------|------------|
-| `id` | `Long` | Первичный ключ | ✅ | ✅ |
-| `userId` | `Long` | ID пользователя | ✅ | ❌ |
-| `refreshToken` | `String` | Refresh token | ✅ | ✅ |
-| `expiresAt` | `LocalDateTime` | Время истечения | ✅ | ❌ |
-| `createdAt` | `LocalDateTime` | Дата создания | ✅ | ❌ |
+| Поле | Тип | Описание | Обязательное | Уникальное | Источник |
+|------|-----|----------|---------------|------------|----------|
+| `id` | `UUID` | Первичный ключ | ✅ | ✅ | BaseEntity |
+| `userId` | `UUID` | ID пользователя (из PostgreSQL) | ✅ | ❌ | TokenEntity |
+| `refreshToken` | `String` | Refresh token | ✅ | ✅ | TokenEntity |
+| `expiresAt` | `LocalDateTime` | Время истечения | ✅ | ❌ | TokenEntity |
+| `createdAt` | `LocalDateTime` | Дата создания | ✅ | ❌ | BaseEntity |
+| `updatedAt` | `LocalDateTime` | Дата обновления | ❌ | ❌ | BaseEntity |
 
 ### Связи
-- **Нет прямых связей** - userId хранится как Long (пользователь в другой БД)
+- **Нет прямых JPA связей** - `userId` хранится как `UUID` (пользователь в другой БД - PostgreSQL)
+- Связь происходит только по логике приложения, не через FK
 
 ### Примеры значений
 
 ```java
-userId: 1
+id: "550e8400-e29b-41d4-a716-446655440000"  // UUID
+userId: "660e8400-e29b-41d4-a716-446655440001"  // UUID пользователя из PostgreSQL
 refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 expiresAt: 2025-01-21T10:00:00
 createdAt: 2025-01-20T10:00:00
+updatedAt: 2025-01-20T10:00:00
 ```
 
 ### Важные замечания
 - **userId** - это **НЕ внешний ключ** (FK), так как пользователи хранятся в другой БД (PostgreSQL)
-- Хранится просто как `Long` для связи по логике приложения
+- Хранится как `UUID` для связи по логике приложения (соответствует `UserEntity.id`)
 - **refreshToken** должен быть уникальным
 - При истечении токена он должен быть удален
+- Хранится в H2 Database (in-memory или file-based)
 
 ### Индексы
 - `refresh_token` - уникальный индекс
@@ -171,16 +192,22 @@ createdAt: 2025-01-20T10:00:00
 
 ```sql
 CREATE TABLE tokens (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id BIGINT NOT NULL,
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL,
     refresh_token VARCHAR(500) NOT NULL UNIQUE,
     expires_at TIMESTAMP NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP,
     INDEX idx_user_id (user_id),
     INDEX idx_refresh_token (refresh_token),
     INDEX idx_expires_at (expires_at)
 );
 ```
+
+### Наследование от BaseEntity
+- `TokenEntity` наследуется от `BaseEntity`
+- `BaseEntity` предоставляет: `id` (UUID), `createdAt`, `updatedAt`
+- `@CreatedDate` и `@LastModifiedDate` автоматически заполняются через `@EnableJpaAuditing`
 
 ---
 
@@ -191,28 +218,30 @@ CREATE TABLE tokens (
 
 ### Поля
 
-| Поле | Тип | Описание | Обязательное | Уникальное |
-|------|-----|----------|---------------|------------|
-| `id` | `Long` | Первичный ключ | ✅ | ✅ |
-| `userId` | `Long` | ID пользователя | ✅ | ❌ |
-| `bankClientId` | `Long` | ID клиента в Bank Module | ✅ | ❌ |
-| `bankName` | `String` | Название банка (vbank, abank, sbank) | ✅ | ❌ |
-| `isPrimary` | `Boolean` | Основной банк пользователя | ✅ | ❌ |
-| `createdAt` | `LocalDateTime` | Дата создания | ✅ | ❌ |
-| `updatedAt` | `LocalDateTime` | Дата обновления | ❌ | ❌ |
+| Поле | Тип | Описание | Обязательное | Уникальное | Источник |
+|------|-----|----------|---------------|------------|----------|
+| `id` | `UUID` | Первичный ключ | ✅ | ✅ | BaseEntity |
+| `user` | `UserEntity` | Связь с пользователем | ✅ | ❌ | UserBankClientEntity |
+| `bankClientId` | `UUID` | ID клиента в Bank Module | ✅ | ❌ | UserBankClientEntity |
+| `bankName` | `String` | Название банка (vbank, abank, sbank) | ✅ | ❌ | UserBankClientEntity |
+| `isPrimary` | `Boolean` | Основной банк пользователя | ✅ | ❌ | UserBankClientEntity |
+| `createdAt` | `LocalDateTime` | Дата создания | ✅ | ❌ | BaseEntity |
+| `updatedAt` | `LocalDateTime` | Дата обновления | ❌ | ❌ | BaseEntity |
 
 ### Связи
-- **ManyToOne** с `User` - связь принадлежит одному пользователю
-- **Связь с Bank Module** через `bankClientId` - ID клиента в Bank Module (не FK)
+- **ManyToOne** с `UserEntity` - связь принадлежит одному пользователю (JPA связь, одна БД)
+- **Связь с Bank Module** через `bankClientId` - UUID клиента в Bank Module (не FK, разные БД)
 
 ### Примеры значений
 
 ```java
-userId: 1
-bankClientId: 100  // ID клиента в vbank
+id: "550e8400-e29b-41d4-a716-446655440000"  // UUID
+user: UserEntity(id=uuid-1, ...)
+bankClientId: "660e8400-e29b-41d4-a716-446655440001"  // UUID клиента в vbank
 bankName: "vbank"
 isPrimary: true
 createdAt: 2025-01-20T10:00:00
+updatedAt: 2025-01-20T10:00:00
 ```
 
 ### Индексы
@@ -225,13 +254,13 @@ createdAt: 2025-01-20T10:00:00
 
 ```sql
 CREATE TABLE user_bank_clients (
-    id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL,
-    bank_client_id BIGINT NOT NULL,
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL,
+    bank_client_id UUID NOT NULL,
     bank_name VARCHAR(100) NOT NULL,
     is_primary BOOLEAN NOT NULL DEFAULT false,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     UNIQUE (user_id, bank_client_id),
     INDEX idx_user_id (user_id),
@@ -240,12 +269,17 @@ CREATE TABLE user_bank_clients (
 );
 ```
 
+### Наследование от BaseEntity
+- `UserBankClientEntity` наследуется от `BaseEntity`
+- `BaseEntity` предоставляет: `id` (UUID), `createdAt`, `updatedAt`
+- `@CreatedDate` и `@LastModifiedDate` автоматически заполняются через `@EnableJpaAuditing`
+
 ### Связь с Bank Module
-- `bankClientId` - ID клиента в Bank Module (таблица `clients`)
+- `bankClientId` - UUID клиента в Bank Module (таблица `clients`)
 - Это **НЕ внешний ключ** (FK), так как клиенты хранятся в другой БД
-- Хранится просто как `Long` для связи по логике приложения
+- Хранится как `UUID` для связи по логике приложения (соответствует `Client.id` в Bank Module)
 - Bank Module **не знает** о существовании Backend - полная изоляция
-- Связь: `UserBankClient.bank_client_id` → `Client.id` (только через ID)
+- Связь: `UserBankClient.bank_client_id` → `Client.id` (только через UUID)
 
 ### Логика работы
 - Один пользователь может иметь несколько записей в `user_bank_clients`
@@ -290,7 +324,7 @@ UserBankClient.bank_client_id → Client.id (Bank Module, только ID, не 
 ┌─────────────┐
 │    User     │
 │             │
-│  - id       │
+│  - id (UUID)│
 └──────┬──────┘
        │
        │ 1
@@ -309,8 +343,9 @@ UserBankClient.bank_client_id → Client.id (Bank Module, только ID, не 
 ┌─────────────┐
 │    User     │
 │             │
-│  - id       │
-│  - username │
+│  - id (UUID)│
+│  - firstname│
+│  - lastname │
 └──────┬──────┘
        │
        │ 1
@@ -348,10 +383,10 @@ UserBankClient.bank_client_id → Client.id (Bank Module, только ID, не 
 
 **Один пользователь → Несколько банков:**
 ```
-User (id=1, username="ivan")
-  ├── UserBankClient (id=1, userId=1, bankClientId=100, bankName="vbank", isPrimary=true)
-  ├── UserBankClient (id=2, userId=1, bankClientId=200, bankName="abank", isPrimary=false)
-  └── UserBankClient (id=3, userId=1, bankClientId=300, bankName="sbank", isPrimary=false)
+User (id=uuid-1, firstname="Ivan", lastname="Ivanov")
+  ├── UserBankClient (id=uuid-2, userId=uuid-1, bankClientId=uuid-100, bankName="vbank", isPrimary=true)
+  ├── UserBankClient (id=uuid-3, userId=uuid-1, bankClientId=uuid-200, bankName="abank", isPrimary=false)
+  └── UserBankClient (id=uuid-4, userId=uuid-1, bankClientId=uuid-300, bankName="sbank", isPrimary=false)
 
 Bank Module (vbank):
   Client (id=100) → Accounts → Cards → Transactions
@@ -383,14 +418,14 @@ Bank Module (sbank):
 - При истечении токена он должен быть удален
 
 ### 4. Уникальность
-- `username` - должен быть уникальным
+- `id` (UUID) - автоматически уникальный
 - `login` - должен быть уникальным
 - `refreshToken` - должен быть уникальным
 - `userId` в UserCredentials - должен быть уникальным (один пользователь = одни учетные данные)
 
 ### 5. Индексы
 - Создайте индексы на часто используемых полях
-- Особенно важны индексы на `username`, `login`, `userId`, `refreshToken`
+- Особенно важны индексы на `email`, `login`, `userId`, `refreshToken`
 
 ---
 
@@ -422,9 +457,14 @@ Bank Module (sbank):
 
 ## 📊 Примеры запросов
 
-### Получить пользователя по username
+### Получить пользователя по email
 ```java
-Optional<User> user = userRepository.findByUsername(username);
+Optional<User> user = userRepository.findByEmail(email);
+```
+
+### Получить пользователя по ID
+```java
+Optional<User> user = userRepository.findById(userId);
 ```
 
 ### Получить все банки пользователя

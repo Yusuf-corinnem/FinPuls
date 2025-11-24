@@ -899,15 +899,24 @@ Middleware фильтры для проверки токенов и логиро
 **Таблица: users**
 ```sql
 CREATE TABLE users (
-    id BIGSERIAL PRIMARY KEY,
-    username VARCHAR(100) NOT NULL UNIQUE,
+    id UUID PRIMARY KEY,
+    firstname VARCHAR(100),
+    lastname VARCHAR(100),
+    secondname VARCHAR(100),
     email VARCHAR(255),
-    first_name VARCHAR(100),
-    last_name VARCHAR(100),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP,
+    INDEX idx_email (email)
 );
 ```
+
+**Примечания:**
+- `id` — UUID (генерируется автоматически через `GenerationType.UUID` из `BaseEntity`)
+- `firstname`, `lastname`, `secondname` — ФИО пользователя
+- `email` — email адрес (необязательное поле)
+- `created_at` — автоматически заполняется через `@CreatedDate` (требует `@EnableJpaAuditing`)
+- `updated_at` — автоматически обновляется через `@LastModifiedDate` (требует `@EnableJpaAuditing`)
+- `UserEntity` наследуется от `BaseEntity`, который предоставляет общие поля
 
 **Таблица: user_credentials**
 ```sql
@@ -938,20 +947,25 @@ CREATE TABLE user_credentials (
 **Таблица: tokens**
 ```sql
 CREATE TABLE tokens (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id BIGINT NOT NULL,
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL,
     refresh_token VARCHAR(500) NOT NULL,
     expires_at TIMESTAMP NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP,
     INDEX idx_user_id (user_id),
     INDEX idx_refresh_token (refresh_token)
 );
 ```
 
 **Примечания:**
+- `id` — UUID (генерируется автоматически через `GenerationType.UUID` из `BaseEntity`)
 - `refresh_token` — refresh token для обновления access token
 - `expires_at` — время истечения refresh token
-- `user_id` — связь с пользователем из PostgreSQL (только ID, не FK)
+- `user_id` — UUID пользователя из PostgreSQL (только UUID, без JPA связи, так как Entity находятся в разных БД)
+- `created_at` — автоматически заполняется через `@CreatedDate` (требует `@EnableJpaAuditing`)
+- `updated_at` — автоматически обновляется через `@LastModifiedDate` (требует `@EnableJpaAuditing`)
+- `TokenEntity` наследуется от `BaseEntity`, который предоставляет общие поля
 
 **Использование H2 для токенов:**
 
